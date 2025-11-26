@@ -1,6 +1,7 @@
 {
   "type": "module",
   "scripts": {
+    "test": "echo 'hello'",
     "start": "node src/main.js"
   },
   "dependencies": {

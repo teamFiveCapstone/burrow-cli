@@ -1,6 +1,13 @@
 {
+  "type": "module",
+  "scripts": {
+    "test": "echo 'hello'",
+    "start": "node src/main.js"
+  },
   "dependencies": {
     "@clack/prompts": "^0.11.0",
+    "aws-sdk": "^2.1692.0",
+    "execa": "^9.6.0",
     "find-up": "^8.0.0"
   }
 }

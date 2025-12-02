@@ -10,6 +10,7 @@ import {
 import { execa } from "execa";
 import { randomUUID } from "crypto";
 import AWS from "aws-sdk";
+import { readFile, readdir, stat } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 // import { pathExists } from "path-exists";
@@ -121,7 +122,7 @@ async function runTerraformInit(terraformDir, bucketName, region) {
       [
         "init",
         "-reconfigure",
-        `-backend-config=bucket=${bucketName}`,
+        `-backend-config=bucket=burrow-terraform-state-us-east-1-12345`,
         "-backend-config=key=burrow/terraform-main.tfstate",
         `-backend-config=region=${region}`,
         "-backend-config=encrypt=true",
@@ -332,6 +333,98 @@ await runTerraApply(
   region
 );
 
+const frontendDir = await findUp("burrow-frontend", {
+  type: "directory",
+});
+
+async function buildFrontend(frontendDir) {
+  const s = spinner();
+  s.start("Building UI");
+
+  try {
+    await execa("npm", ["run", "build"], { cwd: frontendDir });
+    s.stop("Terraform initialized successfully");
+  } catch (error) {
+    s.stop("Failed to build the frontend");
+    console.error("Error:", error.message);
+    throw error;
+  }
+}
+
 await getTerraformOutput(burrowInfraDir);
+await buildFrontend(frontendDir);
+const distDir = await findUp("burrow-frontend/dist", {
+  type: "directory",
+});
+
+let frontEndBucket = await execa(
+  "terraform",
+  ["output", "-raw", "front-end-bucket"],
+  {
+    cwd: burrowInfraDir,
+  }
+);
+
+frontEndBucket = frontEndBucket.stdout.trim();
+
+async function getAllFiles(dirPath, baseDir = dirPath) {
+  const files = [];
+  const entries = await readdir(dirPath);
+
+  for (const entry of entries) {
+    const fullPath = path.join(dirPath, entry);
+    const stats = await stat(fullPath);
+
+    if (stats.isDirectory()) {
+      files.push(...(await getAllFiles(fullPath, baseDir)));
+    } else {
+      const relativePath = path.relative(baseDir, fullPath);
+      files.push({
+        filePath: fullPath,
+        key: relativePath.replace(/\\/g, "/"), // Ensure forward slashes for S3 keys
+      });
+    }
+  }
+
+  return files;
+}
+
+const uploadFile = async (s3, bucket, filePath, key) => {
+  const fileContent = await readFile(filePath);
+
+  try {
+    const response = await s3
+      .putObject({
+        Bucket: bucket,
+        Key: key,
+        Body: fileContent,
+      })
+      .promise();
+
+    console.log(`Uploaded: ${key}`);
+    return response;
+  } catch (error) {
+    console.error(`Error uploading ${key}:`, error.message);
+    throw error;
+  }
+};
+
+const uploadToS3 = async ({ frontEndBucket, distDir }) => {
+  const s3 = new AWS.S3();
+
+  try {
+    const files = await getAllFiles(distDir);
+
+    for (const file of files) {
+      await uploadFile(s3, frontEndBucket, file.filePath, file.key);
+    }
+
+  } catch (error) {
+    console.error("Error during upload:", error);
+    throw error;
+  }
+};
+
+uploadToS3({ frontEndBucket, distDir });
 
 outro(`You're all set!`);

@@ -161,7 +161,7 @@ async function getTerraformOutput(terraformDir) {
   s.start("Getting Terraform outputs");
 
   try {
-    const [adminPassword, queryToken, cloudfrontDnsRecord] = await Promise.all([
+    const [adminPassword, queryToken, cloudfrontDnsRecord, pipelineToken] = await Promise.all([
       execa("terraform", ["output", "-raw", "admin-password"], {
         cwd: terraformDir,
       }),
@@ -169,6 +169,9 @@ async function getTerraformOutput(terraformDir) {
         cwd: terraformDir,
       }),
       execa("terraform", ["output", "-raw", "cloudfront-dns-record"], {
+        cwd: terraformDir,
+      }),
+      execa("terraform", ["output", "-raw", "pipeline-api-token"], {
         cwd: terraformDir,
       }),
     ]);
@@ -195,7 +198,7 @@ async function getTerraformOutput(terraformDir) {
 
     note(
       formatContent(
-        `Token:    [Generated after deployment]\nUsed for: Authenticating requests to the management API`
+        `Token:    ${pipelineToken.stdout.trim()}\nUsed for: Authenticating requests to the management API`
       ),
       "🔑 Management API Token"
     );
@@ -291,17 +294,17 @@ if (isCancel(privateSubnet2)) {
   process.exit(0);
 }
 
-await createTerraformStateBucket(region, bucketName);
-await runTerraformInit(burrowInfraDir, bucketName, region);
-await runTerraApply(
-  burrowInfraDir,
-  awsVPCId,
-  publicSubnet1,
-  publicSubnet2,
-  privateSubnet1,
-  privateSubnet2,
-  region
-);
+// await createTerraformStateBucket(region, bucketName);
+// await runTerraformInit(burrowInfraDir, bucketName, region);
+// await runTerraApply(
+//   burrowInfraDir,
+//   awsVPCId,
+//   publicSubnet1,
+//   publicSubnet2,
+//   privateSubnet1,
+//   privateSubnet2,
+//   region
+// );
 
 const frontendDir = await findUp("burrow-frontend", {
   type: "directory",

@@ -161,7 +161,7 @@ async function getTerraformOutput(terraformDir) {
   s.start("Getting Terraform outputs");
 
   try {
-    const [adminPassword, queryToken, cloudfrontDnsRecord] = await Promise.all([
+    const [adminPassword, queryToken, cloudfrontDnsRecord, pipelineToken] = await Promise.all([
       execa("terraform", ["output", "-raw", "admin-password"], {
         cwd: terraformDir,
       }),
@@ -169,6 +169,9 @@ async function getTerraformOutput(terraformDir) {
         cwd: terraformDir,
       }),
       execa("terraform", ["output", "-raw", "cloudfront-dns-record"], {
+        cwd: terraformDir,
+      }),
+      execa("terraform", ["output", "-raw", "pipeline-api-token"], {
         cwd: terraformDir,
       }),
     ]);
@@ -195,7 +198,7 @@ async function getTerraformOutput(terraformDir) {
 
     note(
       formatContent(
-        `Token:    [Generated after deployment]\nUsed for: Authenticating requests to the management API`
+        `Token:    ${pipelineToken.stdout.trim()}\nUsed for: Authenticating requests to the management API`
       ),
       "🔑 Management API Token"
     );
@@ -351,7 +354,7 @@ async function getAllFiles(dirPath, baseDir = dirPath) {
       const relativePath = path.relative(baseDir, fullPath);
       files.push({
         filePath: fullPath,
-        key: relativePath.replace(/\\/g, "/"), // Ensure forward slashes for S3 keys
+        key: relativePath.replace(/\\/g, "/"),
       });
     }
   }
@@ -371,7 +374,6 @@ const uploadFile = async (s3, bucket, filePath, key) => {
       })
       .promise();
 
-    // console.log(`Uploaded: ${key}`);
     return response;
   } catch (error) {
     console.error(`Error uploading ${key}:`, error.message);

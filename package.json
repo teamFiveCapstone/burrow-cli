@@ -2,8 +2,8 @@
   "type": "module",
   "scripts": {
     "test": "echo 'hello'",
-    "start": "node src/main.js",
-    "destroy": "node src/destroy.js"
+    "deploy": "node src/commands/deploy.js",
+    "destroy": "node src/commands/destroy.js"
   },
   "dependencies": {
     "@clack/prompts": "^0.11.0",

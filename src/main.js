@@ -354,7 +354,7 @@ async function getAllFiles(dirPath, baseDir = dirPath) {
       const relativePath = path.relative(baseDir, fullPath);
       files.push({
         filePath: fullPath,
-        key: relativePath.replace(/\\/g, "/"), // Ensure forward slashes for S3 keys
+        key: relativePath.replace(/\\/g, "/"),
       });
     }
   }
@@ -374,7 +374,6 @@ const uploadFile = async (s3, bucket, filePath, key) => {
       })
       .promise();
 
-    // console.log(`Uploaded: ${key}`);
     return response;
   } catch (error) {
     console.error(`Error uploading ${key}:`, error.message);

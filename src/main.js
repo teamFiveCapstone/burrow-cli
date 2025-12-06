@@ -294,17 +294,17 @@ if (isCancel(privateSubnet2)) {
   process.exit(0);
 }
 
-// await createTerraformStateBucket(region, bucketName);
-// await runTerraformInit(burrowInfraDir, bucketName, region);
-// await runTerraApply(
-//   burrowInfraDir,
-//   awsVPCId,
-//   publicSubnet1,
-//   publicSubnet2,
-//   privateSubnet1,
-//   privateSubnet2,
-//   region
-// );
+await createTerraformStateBucket(region, bucketName);
+await runTerraformInit(burrowInfraDir, bucketName, region);
+await runTerraApply(
+  burrowInfraDir,
+  awsVPCId,
+  publicSubnet1,
+  publicSubnet2,
+  privateSubnet1,
+  privateSubnet2,
+  region
+);
 
 const frontendDir = await findUp("burrow-frontend", {
   type: "directory",

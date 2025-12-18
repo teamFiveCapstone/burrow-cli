@@ -21,7 +21,7 @@ export const cloneRepo = async (URL: string, dir: string) => {
 
   try {
     await execa("git", ["clone", `${URL}`], { cwd: dir });
-    s.stop("Repository cloned successfully!");
+    s.stop(`${repoName} cloned succesfully!`);
   } catch (error) {
     s.stop(`Failed to clone ${repoName}`);
     throw error;

@@ -75,21 +75,17 @@ export async function getTerraformOutput(terraformDir: string): Promise<void> {
   s.start("Getting Terraform outputs.");
 
   try {
-    const [adminPassword, queryToken, cloudfrontDnsRecord, pipelineToken] =
-      await Promise.all([
-        execa("terraform", ["output", "-raw", "admin-password"], {
-          cwd: terraformDir,
-        }),
-        execa("terraform", ["output", "-raw", "query-api-token"], {
-          cwd: terraformDir,
-        }),
-        execa("terraform", ["output", "-raw", "cloudfront-dns-record"], {
-          cwd: terraformDir,
-        }),
-        execa("terraform", ["output", "-raw", "pipeline-api-token"], {
-          cwd: terraformDir,
-        }),
-      ]);
+    const [adminPassword, queryToken, cloudfrontDnsRecord] = await Promise.all([
+      execa("terraform", ["output", "-raw", "admin-password"], {
+        cwd: terraformDir,
+      }),
+      execa("terraform", ["output", "-raw", "rag-api-token"], {
+        cwd: terraformDir,
+      }),
+      execa("terraform", ["output", "-raw", "cloudfront-dns-record"], {
+        cwd: terraformDir,
+      }),
+    ]);
 
     s.stop("Deployed! Here's all the information you'll need:");
 
@@ -117,16 +113,9 @@ export async function getTerraformOutput(terraformDir: string): Promise<void> {
 
     note(
       formatContent(
-        `Token:    ${pipelineToken.stdout.trim()}\nUsed for: Authenticating requests to the management API`
+        `Token:    ${queryToken.stdout.trim()}\nUsed for: Authenticating requests to the RAG API`
       ),
-      "🔑 Management API Token"
-    );
-
-    note(
-      formatContent(
-        `Token:    ${queryToken.stdout.trim()}\nUsed for: Authenticating requests to the query API`
-      ),
-      "🔑 Query API Token"
+      "🔑 RAG API"
     );
   } catch (error) {
     s.stop("Failed to get Terraform outputs");

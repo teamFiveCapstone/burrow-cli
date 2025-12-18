@@ -160,7 +160,7 @@ export async function deploy(): Promise<void> {
 async function main(): Promise<void> {
   try {
     await clone();
-    // await deploy();
+    await deploy();
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error("\n❌ Deployment failed!");

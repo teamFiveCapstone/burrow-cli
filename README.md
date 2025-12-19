@@ -1,5 +1,7 @@
 # Burrow CLI
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 ## Overview
 
 This repository contains the automated deployment process for Burrow, an open-source RAG-as-a-service platform that provides teams with production-grade document processing and advanced retrieval capabilities.
